@@ -7,11 +7,11 @@
 #include "timer.h"
 #include "leds.h"
 
-static uint16_t counter;
+static timer_cb_t timer_tca0_callback = NULL;	//!< TCA0 High byte interupt callback
+static uint16_t counter;						//!< Counter for TCA0 High byte
 
-static void (*timer_tca0_callback)(void) = NULL;
 
-static void timer_tca0_cb(void) {
+static void tca0_expired(void) {
 	
 	counter++;
 		
@@ -19,6 +19,10 @@ static void timer_tca0_cb(void) {
 		counter = 0;
 		led_toggle(LED_GREEN);
 	}
+}
+
+void register_timer_cb(timer_cb_t cb) {
+	timer_tca0_callback = cb;
 }
 
 uint8_t TCA_init(void) {
@@ -48,9 +52,9 @@ uint8_t TCA_init(void) {
 				 val);
 	
 	// Register callback
-	timer_tca0_callback = timer_tca0_cb;
-	return 1;
+	register_timer_cb(tca0_expired);
 	
+	return 1;
 }
 
 
